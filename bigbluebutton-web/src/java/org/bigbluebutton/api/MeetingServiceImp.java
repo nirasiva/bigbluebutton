@@ -12,6 +12,7 @@ import org.bigbluebutton.web.services.ExpiredMeetingCleanupTimerTask;
 import org.bigbluebutton.web.services.IDynamicConferenceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.lang.StringUtils;
 
 public class MeetingServiceImp implements MeetingService {
 	private static Logger log = LoggerFactory.getLogger(MeetingServiceImp.class);
@@ -61,20 +62,26 @@ public class MeetingServiceImp implements MeetingService {
 	}
 
 	public Collection<Meeting> getMeetings() {
-		log.debug("The number of meetings are: "+meetings.size());
+		log.debug("The number of meetings are: " + meetings.size());
 		return meetings.isEmpty() ? Collections.<Meeting>emptySet() : Collections.unmodifiableCollection(meetings.values());
 	}
 	
 	public void storeMeeting(Meeting m) {
-		log.debug("Storing Meeting with internal id:"+m.getInternalId());
+		log.debug("Storing Meeting with internal id:" + m.getInternalId());
 		meetings.put(m.getInternalId(), m);
 	}
 
 	public Meeting getMeeting(String meetingId) {
-		if (meetingId == null) {
+		if (StringUtils.isEmpty(meetingId)) {
 			return null;
 		}
-		return (Meeting) meetings.get(meetingId);
+		
+		for (String key : meetings.keySet()) {
+			if (key.startsWith(meetingId))
+				return (Meeting) meetings.get(key);
+		}
+		
+		return null;
 	}
 	
 	
@@ -86,6 +93,10 @@ public class MeetingServiceImp implements MeetingService {
 	        }
 		}
 */		return false;
+	}
+	
+	public void send(String channel, String message) {
+		messagingService.send(channel, message);
 	}
 	
 	public void endMeeting(String meetingId) {
@@ -151,8 +162,8 @@ public class MeetingServiceImp implements MeetingService {
 		public void userLeft(String meetingId, String userId) {
 			Meeting m = getMeeting(meetingId);
 			if (m != null) {
-				User user=m.userLeft(userId);
-				log.debug("User removed from meeting:"+user.getFullname());
+				User user = m.userLeft(userId);
+				log.debug("User removed from meeting:" + user.getFullname());
 			}
 		}
 		
@@ -160,7 +171,7 @@ public class MeetingServiceImp implements MeetingService {
 		public void updatedStatus(String meetingId, String userId, String status, String value) {
 			Meeting m = getMeeting(meetingId);
 			if (m != null) {
-				User user=m.getUserById(userId);
+				User user = m.getUserById(userId);
 				user.setStatus(status, value);
 				log.debug("Setting new status value for participant:"+user.getFullname());
 			}

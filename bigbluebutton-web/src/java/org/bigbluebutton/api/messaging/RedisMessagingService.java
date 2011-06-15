@@ -1,5 +1,7 @@
 package org.bigbluebutton.api.messaging;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -8,12 +10,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import redis.clients.jedis.Jedis;
-import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPubSub;
 
@@ -29,8 +28,8 @@ public class RedisMessagingService implements MessagingService {
 	private Runnable pubsubListener;
 
 	public RedisMessagingService(String host, int port) {
-		this.host=host;
-		this.port=port;
+		this.host = host;
+		this.port = port;
 	}
 	
  	@Override
@@ -38,39 +37,34 @@ public class RedisMessagingService implements MessagingService {
  		listeners.add(listener);
 	}
  	
- 	@Override
 	public void removeListener(MessageListener listener) {
  		listeners.remove(listener);
  	}
 
-	@Override
 	public void recordMeetingInfo(String meetingId, Map<String, String> info) {
-		Jedis jedis=redisPool.getResource();
-		try{
+		Jedis jedis = redisPool.getResource();
+		try {
 			jedis.hmset("meeting.info:" + meetingId, info);
-		}catch(Exception e){
+		} catch (Exception e){
 			log.warn("Cannot record the info meeting:"+meetingId,e);
-		}finally{
+		} finally {
 			redisPool.returnResource(jedis);
 		}
 		
 		
 	}
 
-	@Override
 	public void recordMeetingMetadata(String meetingId,	Map<String, String> metadata) {
-		Jedis jedis=redisPool.getResource();
-		try{
+		Jedis jedis = redisPool.getResource();
+		try { 
 			jedis.hmset("meeting:metadata:" + meetingId, metadata);
-		}catch(Exception e){
+		} catch (Exception e) {
 			log.warn("Cannot record the metadata meeting:"+meetingId,e);
-		}finally{
+		} finally {
 			redisPool.returnResource(jedis);
-		}
-				
+		}				
 	}
 
-	@Override
 	public void endMeeting(String meetingId) {
 		HashMap<String,String> map= new HashMap<String, String>();
 		map.put("request", "endMeeting");
@@ -79,34 +73,37 @@ public class RedisMessagingService implements MessagingService {
 		send(MessagingConstants.SYSTEM_CHANNEL,gson.toJson(map));
 	}
 
-	@Override
 	public void send(String channel, String message) {
-		Jedis jedis=redisPool.getResource();
-		try{
+		Jedis jedis = redisPool.getResource();
+		try {
+			System.out.println("Sending " + message + " to " + channel);
 			jedis.publish(channel, message);
-		}catch(Exception e){
+		} catch(Exception e){
 			log.warn("Cannot publish the message to redis",e);
 		}finally{
 			redisPool.returnResource(jedis);
 		}
 	}
 
-	@Override
 	public void start() {
-		log.debug("Starting redis pubsub...");
-		
+		log.debug("Starting redis pubsub...");		
 		//Currently, the pool gets blocked for publish if a resource subscribe to a channel
-		final Jedis jedis= new Jedis(this.host,this.port);
-		pubsubListener = new Runnable() {
-		    public void run() {
-		    	jedis.psubscribe(new PubSubListener(), MessagingConstants.BIGBLUEBUTTON_PATTERN);       			
-		    }
-		};
-		exec.execute(pubsubListener);
-
+		final Jedis jedis = new Jedis(this.host,this.port);
+		try {
+			jedis.connect();
+			pubsubListener = new Runnable() {
+			    public void run() {
+			    	jedis.psubscribe(new PubSubListener(), MessagingConstants.BIGBLUEBUTTON_PATTERN);       			
+			    }
+			};
+			exec.execute(pubsubListener);
+		} catch (UnknownHostException e) {
+			log.error("Unknown host[" + host + "]");
+		} catch (IOException e) {
+			log.error("Cannot connect to [" + host + ":" + port + "]");
+		}
 	}
 
-	@Override
 	public void stop() {
 		try {
 			redisPool.destroy();
@@ -127,20 +124,19 @@ public class RedisMessagingService implements MessagingService {
 
 		@Override
 		public void onMessage(String channel, String message) {
-			
+			// Not used.
 		}
 
 		@Override
-		public void onPMessage(String pattern, String channel,
-	            String message) {
+		public void onPMessage(String pattern, String channel, String message) {
 			log.debug("Message Received in channel: "+channel);
 			
-			Gson gson=new Gson();
-			HashMap<String,String> map=gson.fromJson(message, new TypeToken<Map<String, String>>() {}.getType());
+			Gson gson = new Gson();
+			HashMap<String,String> map = gson.fromJson(message, new TypeToken<Map<String, String>>() {}.getType());
 			
 			if(channel.equalsIgnoreCase(MessagingConstants.SYSTEM_CHANNEL)){
-				String meetingId=map.get("meetingId");
-				String state=map.get("state");
+				String meetingId = map.get("meetingId");
+				String state = map.get("state");
 
 				for (MessageListener listener : listeners) {
 					if(state.equalsIgnoreCase("started")) {
@@ -152,35 +148,33 @@ public class RedisMessagingService implements MessagingService {
 
 			}
 			else if(channel.equalsIgnoreCase(MessagingConstants.PARTICIPANTS_CHANNEL)){
-				String meetingId=map.get("meetingId");
-				String action=map.get("action");
-
+				String meetingId = map.get("meetingId");
+				String action = map.get("action");
 				if(action.equalsIgnoreCase("join")){
-					String userid=map.get("userid");
-					String fullname=map.get("fullname");
-					String role=map.get("role");
+					String userid = map.get("userid");
+					String fullname = map.get("fullname");
+					String role = map.get("role");
 					
 					for (MessageListener listener : listeners) {
 						listener.userJoined(meetingId, userid, fullname, role);
 					}
 				}
 				else if(action.equalsIgnoreCase("status")){
-					String userid=map.get("userid");
-					String status=map.get("status");
-					String value=map.get("value");
+					String userid = map.get("userid");
+					String status = map.get("status");
+					String value = map.get("value");
 					
 					for (MessageListener listener : listeners) {
 						listener.updatedStatus(meetingId, userid, status, value);
 					}
 				}
 				else if(action.equalsIgnoreCase("left")){
-					String userid=map.get("userid");
+					String userid = map.get("userid");
 					
 					for (MessageListener listener : listeners) {
 						listener.userLeft(meetingId, userid);
 					}
 				}
-
 			}
 		}
 
@@ -191,22 +185,18 @@ public class RedisMessagingService implements MessagingService {
 
 		@Override
 		public void onPUnsubscribe(String pattern, int subscribedChannels) {
-			// TODO Auto-generated method stub
-
+			// Not used.
 		}
 
 		@Override
 		public void onSubscribe(String channel, int subscribedChannels) {
-			// TODO Auto-generated method stub
-
+			// Not used.
 		}
 
 		@Override
 		public void onUnsubscribe(String channel, int subscribedChannels) {
-			// TODO Auto-generated method stub
-
-		}
-		
+			// Not used.
+		}		
 	}
 
 }

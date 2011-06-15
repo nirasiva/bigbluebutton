@@ -34,7 +34,12 @@ import com.google.gson.Gson;
 
 public class OfficeToPdfConversionSuccessFilter {
 	private static Logger log = LoggerFactory.getLogger(OfficeToPdfConversionSuccessFilter.class);
-	private MessagingService messagingService;
+
+	private final MessagingService messagingService;
+	
+	public OfficeToPdfConversionSuccessFilter(MessagingService m) {
+		messagingService = m;
+	}
 	
 	public boolean didConversionSucceed(UploadedPresentation pres) {
 		notifyProgressListener(pres);
@@ -70,9 +75,5 @@ public class OfficeToPdfConversionSuccessFilter {
 		} else {
 			log.warn("MessagingService has not been set!.");
 		}
-	}
-
-	public void setMessagingService(MessagingService messagingService){
-		this.messagingService = messagingService;
 	}
 }

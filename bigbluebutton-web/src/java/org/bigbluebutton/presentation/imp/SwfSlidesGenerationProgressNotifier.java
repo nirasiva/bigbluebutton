@@ -80,16 +80,17 @@ public class SwfSlidesGenerationProgressNotifier {
 		}
 		
 		String xml = generatedSlidesInfoHelper.generateUploadedPresentationInfo(pres);
-		String escape_xml=StringEscapeUtils.escapeXml(xml);
+		String escape_xml = StringEscapeUtils.escapeXml(xml);
 		MessageBuilder builder = new ConversionUpdateMessage.MessageBuilder(pres);
 		builder.messageKey(ConversionMessageConstants.CONVERSION_COMPLETED_KEY);
 		builder.slidesInfo(escape_xml);
 		notifyProgressListener(builder.build().getMessage());	
 	}
 	
-	public void setMessagingService(MessagingService messagingService) {
-		this.messagingService = messagingService;
+	public void setMessagingService(MessagingService m) {
+		messagingService = m;
 	}
+	
 	public void setGeneratedSlidesInfoHelper(GeneratedSlidesInfoHelper helper) {
 		generatedSlidesInfoHelper = helper;
 	}

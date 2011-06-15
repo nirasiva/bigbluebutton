@@ -59,6 +59,7 @@ public class RoomListener implements IRoomListener{
 	}
 
 	public void endAndKickAll() {
-		// no-op
+		List args = new ArrayList();
+		so.sendMessage("logout", args);
 	}	
 }

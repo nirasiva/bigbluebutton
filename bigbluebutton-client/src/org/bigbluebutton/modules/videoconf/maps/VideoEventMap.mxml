@@ -83,7 +83,7 @@
 				button.isPresenter = !module.presenterShareOnly;
 				var event:ToolbarButtonEvent = new ToolbarButtonEvent(ToolbarButtonEvent.ADD);
 				event.button = button;
-				globalDispatcher.dispatchEvent(event);
+//				globalDispatcher.dispatchEvent(event);
 			}
 			
 			private function openPublishWindow():void{

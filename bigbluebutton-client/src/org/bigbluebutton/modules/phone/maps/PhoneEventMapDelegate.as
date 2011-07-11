@@ -44,10 +44,10 @@ package org.bigbluebutton.modules.phone.maps
 		   	
 		   	// Use the GLobal Dispatcher so that this message will be heard by the
 		   	// main application.		   	
-			var event:ToolbarButtonEvent = new ToolbarButtonEvent(ToolbarButtonEvent.ADD);
-			event.button = phoneButton;
-			trace("Dispatching ADD TOOLBAR BUTTON EVENT");
-			globalDispatcher.dispatchEvent(event);
+//			var event:ToolbarButtonEvent = new ToolbarButtonEvent(ToolbarButtonEvent.ADD);
+//			event.button = phoneButton;
+//			trace("Dispatching ADD TOOLBAR BUTTON EVENT");
+//			globalDispatcher.dispatchEvent(event);
 		   	
 		   	buttonOpen = true;
 

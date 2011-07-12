@@ -69,7 +69,10 @@
 			private var _nSavedVideoHeight:Number = 0;
 			private var _nOldWindowWidth:Number = 0;
 			private var _nOldWindowHeight:Number = 0;
-			
+
+			// Timer to make sure the video fits to window whenever the window is resized.
+			private var fitToWindowTimer:Timer;
+						
 			private function init():void{
 				currentState = "dispVideoOptionsControlBar";
 				checkIfMacCamera();
@@ -87,8 +90,26 @@
 				this.resizable = false;
 				
 				loadPrefs();
+				minimize();
+				this.visible = false;
+
+				/*
+				 * Need to have a timer to trigger resizing video to window after the 
+				 * window has been maximized/restored. The MAXIMIZE/RESTORE events are
+				 * generated when the button is clicked so the width and height are not
+				 * the ones we want.
+				 */
+				fitToWindowTimer = new Timer(3000);
+				fitToWindowTimer.addEventListener(TimerEvent.TIMER, maximizeTimerHandler);
+				fitToWindowTimer.start();	
 			}
+
 			
+			private function maximizeTimerHandler(event:TimerEvent):void {				
+				startPublishing();
+				fitToWindowTimer.stop();
+			}
+						
 			private function loadPrefs():void{
 				var sharedObject:SharedObject = SharedObject.getLocal("bbbUserProperties", "/");
 				var webcam:String = sharedObject.data["webcam"] as String;
@@ -294,11 +315,11 @@
 			}
 			
 			public function onRestore(event:MDIWindowEvent):void {
-				video.x = 0;
-				video.y = 0;
-				video.width = _nSavedVideoWidth;
-				video.height = _nSavedVideoHeight;
-				adjustWindowSize();
+//				video.x = 0;
+//				video.y = 0;
+//				video.width = _nSavedVideoWidth;
+//				video.height = _nSavedVideoHeight;
+//				adjustWindowSize();
 			}
 
 			public function setWindowWidth(width:int):void {

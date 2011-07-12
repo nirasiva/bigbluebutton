@@ -139,7 +139,7 @@
 			}
 			
 			public function getPrefferedPosition():String{
-				return MainCanvas.POPUP;
+				return MainCanvas.MIDDLE;
 			}
 			
 			private function onNetStatus(e:NetStatusEvent):void{

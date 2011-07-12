@@ -64,6 +64,10 @@
 			
 			private function onCreationComplete():void {
 				BindingUtils.bindSetter(updateNumberOfListeners, listeners, "length");	
+				
+				/**
+				 * Hide the Listeners window.
+				 */
 				minimize();
 				this.visible = false;			
 			}

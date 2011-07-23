@@ -19,8 +19,30 @@ server {
           proxy_read_timeout         90;
 
           proxy_buffering            off;
-      }
+      }0
+:
+ges to run this script
+You need root privileges to run this script
+Stopping nginx: nginx.
+You need root privileges to run this script
+You need root privileges to run this script
 
+Starting FreeSWITCH
+start-stop-daemon: stat /opt/freeswitch/bin/freeswitch: Permission denied (Permi                                                                             ssion denied)
+You need root privileges to run this script
+Waiting for ActiveMQ to start:
+Waiting for FreeSWITCH to start:
+You need root privileges to run this script
+Starting nginx: [alert]: could not open error log file: open() "/var/log/nginx/e                                                                             rror.log" failed (13: Permission denied)
+2011/07/20 21:49:46 [warn] 18002#0: the "user" directive makes sense only if the                                                                              master process runs with super-user privileges, ignored in /etc/nginx/nginx.con                                                                             f:1
+the configuration file /etc/nginx/nginx.conf syntax is ok
+2011/07/20 21:49:46 [emerg] 18002#0: open() "/var/run/nginx.pid" failed (13: Per                                                                             mission denied)
+configuration file /etc/nginx/nginx.conf test failed
+You need root privileges to run this script
+You need root privileges to run this script
+Waiting for BigBlueButton to finish starting up (this may take a minute): bbb-common message start                                                           
+
+jiojiojjjjjjjjiop 'u890 iomji jkgyuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu
 	 # Handle desktop sharing tunneling.  Forwards
 	 # requests to Red5 on port 5080.
        location /deskshare {
